@@ -32,6 +32,7 @@
 
 @property (nonatomic, assign) CGPoint gradientOrigin;
 @property (nonatomic, assign) CGFloat gradientRadius;
+@property (nonatomic, assign) CGFloat aspectRatio;
 @property (nonatomic, copy) NSArray *colors;
 @property (nonatomic, copy) NSArray *locations;
 

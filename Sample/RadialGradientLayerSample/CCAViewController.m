@@ -34,6 +34,7 @@
     radialGradientLayer.locations = @[@0, @0.3, @0.5, @1];
     radialGradientLayer.gradientOrigin = CGPointMake(160, 134);
     radialGradientLayer.gradientRadius = 245;
+    radialGradientLayer.aspectRatio = 1.5;
     
     radialGradientLayer.frame = self.view.layer.bounds;
     [self.view.layer addSublayer:radialGradientLayer];
@@ -53,6 +54,7 @@
                                        ];
         radialGradientLayer.gradientOrigin = CGPointMake(160, 334);
         radialGradientLayer.gradientRadius = 120;
+        radialGradientLayer.aspectRatio = 0.5;
         
         [CATransaction commit];
         

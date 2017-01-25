@@ -31,6 +31,7 @@ struct CCARadialGradientLayerProperties
 {
     __unsafe_unretained NSString *gradientOrigin;
     __unsafe_unretained NSString *gradientRadius;
+    __unsafe_unretained NSString *aspectRatio;
     __unsafe_unretained NSString *colors;
     __unsafe_unretained NSString *locations;
 };
@@ -38,6 +39,7 @@ struct CCARadialGradientLayerProperties
 const struct CCARadialGradientLayerProperties CCARadialGradientLayerProperties = {
 	.gradientOrigin = @"gradientOrigin",
     .gradientRadius = @"gradientRadius",
+    .aspectRatio = @"aspectRatio",
     .colors = @"colors",
     .locations = @"locations",
 };
@@ -46,6 +48,7 @@ const struct CCARadialGradientLayerProperties CCARadialGradientLayerProperties =
 
 @dynamic gradientOrigin;
 @dynamic gradientRadius;
+@dynamic aspectRatio;
 @dynamic colors;
 @dynamic locations;
 
@@ -101,7 +104,30 @@ const struct CCARadialGradientLayerProperties CCARadialGradientLayerProperties =
     }
     
     CGGradientRef gradient = CGGradientCreateWithColorComponents(colorSpace, gradientComponents, gradientLocations, numberOfLocations);
-    CGContextDrawRadialGradient(theContext, gradient, self.gradientOrigin, 0, self.gradientOrigin, self.gradientRadius, kCGGradientDrawsAfterEndLocation);
+
+    if (!self.aspectRatio)
+        CGContextDrawRadialGradient(theContext, gradient, self.gradientOrigin, 0, self.gradientOrigin, self.gradientRadius, kCGGradientDrawsAfterEndLocation);
+    else {
+        //Reference: http://stackoverflow.com/questions/6913208/is-there-a-way-to-draw-a-cgcontextdrawradialgradient-as-an-oval-instead-of-a-per/12665177
+        //Scaling transformation and keeping track of the inverse
+        CGAffineTransform scaleT = CGAffineTransformMakeScale(self.aspectRatio, 1.0);
+        CGAffineTransform invScaleT = CGAffineTransformInvert(scaleT);
+
+        //Extract the Sx and Sy elements from the inverse matrix
+        //(See the Quartz documentation for the math behind the matrices)
+        CGPoint invS = CGPointMake(invScaleT.a, invScaleT.d);
+
+        //Transform center and radius of gradient with the inverse
+        CGPoint center = CGPointMake(self.gradientOrigin.x * invS.x, self.gradientOrigin.y * invS.y);
+        CGFloat radius = self.gradientRadius * invS.x;
+
+        // Draw the gradient with the scale transform on the context
+        CGContextScaleCTM(theContext, scaleT.a, scaleT.d);
+        CGContextDrawRadialGradient(theContext, gradient, center, 0, center, radius, kCGGradientDrawsAfterEndLocation);
+
+        // Reset the context
+        CGContextScaleCTM(theContext, invS.x, invS.y);
+    }
     CGGradientRelease(gradient);
 }
 
